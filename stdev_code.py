@@ -6,7 +6,7 @@ def stdev_p(data):
     #result = 2.0 # your code goes here
     n = len(data)
     if n == 0:
-        return 0
+        return None
     result = sumsquaredeviations(data)/n
     return result
 
@@ -14,9 +14,13 @@ def stdev_p(data):
 def stdev_s(data):
     #result = 1.9 # your code goes here
     n = len(data)
-    if n == 0:
-        return 0
-    result = sumsquaredeviations(data)/(n-1)
+    if n == 1:
+        result = stdev_p(data)
+    elif n < 1:
+        result = None
+    else:
+        result = sumsquaredeviations(data)/n-1
+
     return result
 
 def sumsquaredeviations(data):
