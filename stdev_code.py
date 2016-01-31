@@ -7,7 +7,7 @@ def stdev_p(data):
     n = len(data)
     if n == 0:
         return None
-    result = sumsquaredeviations(data)/n
+    result = m.sqrt(sumsquaredeviations(data)/n)
     return result
 
 # calculate the sample standard deviation
@@ -19,7 +19,7 @@ def stdev_s(data):
     elif n < 1:
         result = None
     else:
-        result = sumsquaredeviations(data)/n-1
+        result = m.sqrt(sumsquaredeviations(data)/(n-1))
 
     return result
 
