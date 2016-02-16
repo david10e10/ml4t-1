@@ -15,21 +15,10 @@ def compute_portvals(orders_file="./orders/orders.csv", start_val=1000000):
     orders = pd.read_csv(orders_file, index_col=0, parse_dates=True, sep=',')
     orders = orders.sort_index()
     start_date = orders.index[0].to_datetime()
-    end_date = orders.index[-1].to_datetime() + dt.timedelta(1)
-    orders.index = orders.index + pd.DateOffset(days=1)
+    end_date = orders.index[-1].to_datetime()
+    orders.index = orders.index
     dates = pd.date_range(start_date, end_date)
     symbols = orders.get('Symbol').unique().tolist()  # Get a LIST of symbols
-    # Deprecate the Pivot Function #TODO Fix Pivoting? Multiple orders on same day can't be incorporated due to duplicate index
-    ##y = orders.ix[:, ['Symbol', 'Order', 'Shares']]  # Collect Symbols and Shares ONly
-    ##y['Shares'] = np.where(y['Order'] == 'SELL', y['Shares'] * -1,
-    ##                       y['Shares'])  # Convert Shares to +/- for transactional purpose (Sell multiplied by -1)
-    ##z = y.ix[:, ['Symbol', 'Shares']]  # Keep only Symbol and shares
-    ##order_transactions = z.pivot(index=None, columns='Symbol').fillna(
-    ##    value=0)  # Pivot to the cumulative sum of each share type
-    ##order_transactions = order_transactions.Shares  # Pivot to the cumulative sum of each share type
-    ##order_transactions.index = order_transactions.index + pd.DateOffset(
-    ##    days=1)  # Add 1 to dates (because orders don't take place until end of day, share transactions aren't taken into acct until next day)
-    ##order_sums = order_transactions.cumsum()
 
     # Read in adjusted closing prices for given symbols, date range
     prices_all = get_data(symbols, dates)  # automatically adds SPY
@@ -48,7 +37,6 @@ def compute_portvals(orders_file="./orders/orders.csv", start_val=1000000):
     portvals = pd.DataFrame(columns=columns, index=[
         dates])  # initialize portfolio values, buying power = -999 until I incorporate leverage
     portvals.ix[0] = 0
-    # TODO    portfolio = pd.concat([portfolio,order_sums],axis=1)
 
     # Calculate Cash Transactions
     cash_transactions = pd.DataFrame(columns=['cash_transaction'], index=[dates])
@@ -63,13 +51,13 @@ def compute_portvals(orders_file="./orders/orders.csv", start_val=1000000):
         else:
             mult = -1.0
         share_transactions.ix[orders.index[i].to_datetime(), orders.ix[i]['Symbol']] = share_transactions.ix[orders.index[i].to_datetime(), orders.ix[i]['Symbol']] + mult * orders.ix[i]['Shares']
-        order_cost = mult * orders.ix[i]['Shares'] * prices.ix[orders.index[i].to_datetime() - dt.timedelta(1)][
+        order_cost = mult * orders.ix[i]['Shares'] * prices.ix[orders.index[i].to_datetime()][
             orders.ix[i]['Symbol']]
-        print orders.ix[i]['Symbol']
-        print orders.ix[i]['Order']
-        print order_cost
-        print orders.index[i].to_datetime()
-        print
+        # print orders.ix[i]['Symbol']
+        # print orders.ix[i]['Order']
+        # print order_cost
+        # print orders.index[i].to_datetime()
+        # print
         cash_transactions.ix[orders.index[i].to_datetime(), ['cash_transaction']] = cash_transactions.ix[orders.index[i].to_datetime(), ['cash_transaction']] - order_cost
     portvals.cash = cash_transactions.cash_transaction.cumsum() #Calculate total amt of cash in the portfolio at a given time (sum up the cash transactions)
     shares = share_transactions.cumsum() #Calculate total num of shares in the portfolio at a given time (sum up the share orders)
